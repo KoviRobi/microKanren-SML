@@ -77,8 +77,8 @@ fun append l r out =
         c(A, _, B) :- b(A, B).
  *)
 fun a a0 = a0==Ax || a0==Ax
-fun b a0 a1 = (a0==A3 && a1==Ax) ||
-                                 (a0==A1 && a1==A7)
+fun b a0 a1 = (a0==A3 && a1==Ax)
+                  || (a0==A1 && a1==A7)
 fun c a0 a1 a2 =
     If (once (a a0 && fresh (fn v => b a1 v))
        ,fresh (fn d => a d)
@@ -126,8 +126,8 @@ in
    please_wait
    s(z) *)
 
- print_results 10 "append(L,R,[1,2,3])"
-               (comp""[L,R])
+ print_results 10 "append(L,R,[1,2,3]) % printing (L, R)"
+               (comp""[L, R])
                (append L R (A1:::A2:::A3:::A_nil));
 (* Expected output
    append(L,R,[1,2,3])
