@@ -74,7 +74,7 @@ fun extend (subs : substitutions) id term =
     else SOME ((id, term)::subs)
 
 
-(* Section 2: Unification *)
+(* Part 2: Unification *)
 
 (* This is similar to slide Basics/11, or bookwork question 2R.1,
    which is why it might be an extension on it. What is different is
