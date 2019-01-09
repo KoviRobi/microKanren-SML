@@ -13,12 +13,18 @@ Files:
    A simple lazy-list/stream/sequence library for
    Standard ML, necessary for [microkanren.sml](microkanren.sml).
 - [microkanren_prettyprint.sml](microkanren_prettyprint.sml):
-   Basic pretty-printers for terms, necessary for 
+   Basic pretty-printers for terms, necessary for
    [microkanren_examples.sml](microkanren_examples.sml).
 - [microkanren_examples.sm](microkanren_examples.sml):
-   A couple of examples, with their corresponding 
+   A couple of examples, with their corresponding
    Prolog implementation.
-   
+
+There is the branch [structures](../../tree/structures) which uses Standard
+ML's signatures and structures, and might or might not be easier to
+read. The benefit of that is you are able to see the types of
+functions side-by-side with their implementations, by looking at both
+the *.sig and *.sml file.
+
 Running:
 To run in PolyML, run
 `poly --use microkanren.sml`, to run the examples, do `poly --use microkanren.sml --use microkanren_prettyprint.sml --use microkanren_examples.sml -q` (the `-q` makes PolyML quiet, and supresses printing of types, which makes the printed output stand on its own).
