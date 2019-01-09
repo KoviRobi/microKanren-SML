@@ -1,3 +1,5 @@
+structure Sequence :> SEQUENCE =
+struct
 datatype 'a seq = consq of 'a * (unit -> 'a seq) | nilq
 
 fun hdq (consq(x, xf)) = x
@@ -39,3 +41,4 @@ fun takeq n nilq = nilq
 fun dropq n nilq = nilq
   | dropq 0 seq = seq
   | dropq n (consq(x, xf)) = dropq (n-1) (xf())
+end

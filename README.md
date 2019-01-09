@@ -13,21 +13,26 @@ Files:
    A simple lazy-list/stream/sequence library for
    Standard ML, necessary for [microkanren.sml](microkanren.sml).
 - [microkanren_prettyprint.sml](microkanren_prettyprint.sml):
-   Basic pretty-printers for terms, necessary for 
+   Basic pretty-printers for terms, necessary for
    [microkanren_examples.sml](microkanren_examples.sml).
 - [microkanren_examples.sm](microkanren_examples.sml):
-   A couple of examples, with their corresponding 
+   A couple of examples, with their corresponding
    Prolog implementation.
-   
+
 Running:
 To run in PolyML, run
-`poly --use microkanren.sml`, to run the examples, do `poly --use microkanren.sml --use microkanren_prettyprint.sml --use microkanren_examples.sml -q` (the `-q` makes PolyML quiet, and supresses printing of types, which makes the printed output stand on its own).
+`poly --use sequence.sig --use microkanren.sig --use sequence.sml --use microkanren.sml`, to run the examples, do `poly --use sequence.sig --use microkanren.sig --use sequence.sml --use microkanren.sml --use microkanren_examples.sml` (the `-q` makes PolyML quiet, and supresses printing of types, which makes the printed output stand on its own).
 
-To run in SML/NJ, use `sml microkanren.sml` and `sml microkanren.sml microkanren_prettyprint.sml microkanren_examples.sml`.
+To run in SML/NJ, use `sml sequence.sig microkanren.sig sequence.sml microkanren.sml` and `sml sequence.sig microkanren.sig sequence.sml microkanren.sml microkanren_examples.sml`.
 
 Here is what the output should be (minus any types and warnings):
 ```
-$ poly --use microkanren.sml --use microkanren_prettyprint.sml --use microkanren_examples.sml -q
+$ poly --use sequence.sig \
+    --use microkanren.sig \
+    --use sequence.sml \
+    --use microkanren.sml \
+    --use microkanren_examples.sml
+
 X==x
 x
 

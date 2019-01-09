@@ -8,10 +8,13 @@
 
    This file is split into the following parts, delimited by ""
    (form-feed, Control-L, 0xC)
-   1. Substitutions
-   2. Unification
-   3. Pure operators
-   4. Impure operators
+   1. Terms
+   2. Substitutions
+   3. Unification
+   4. Pure operators
+   5. Impure operators
+
+   Each of these parts have their own signature in microkanren.sig
 *)
 
 (* For simplicity, atoms will only be strings, but if you wanted to,
@@ -24,16 +27,44 @@
    don't need to do variable renaming to avoid collisions of variables
    which have the same name, only keep an integer counter.
    *)
+
+(* Part 1: Terms of the microKanren language. *)
+structure Terms :> TERMS =
+struct
 datatype term = Atom of string
               | Var of variable
               | Comp of string * term list
      and variable = User of string | Internal of int
+(* Pretty-printing *)
+fun pp_term (Atom s) = s
+  | pp_term (Var s) = pp_var s
+  | pp_term (Comp (s, ts)) =
+    s ^ "(" ^ (String.concatWith ", " (map pp_term ts)) ^ ")"
+and pp_var (User s) = s
+  | pp_var (Internal i) = "%"^Int.toString i
+end
 
+
+(* Part 2: Substitutions, mappings from variables to terms *)
+
+structure Substitutions :> SUBSTITUTIONS
+   where type term = Terms.term
+     and type variable = Terms.variable =
+struct
+open Terms
 (* Before implementing unification, we need to implement
    substitutions, which map variables to terms. We are using an
    association-list, which is just a list of (key,value) pairs. *)
 type substitutions = (variable * term) list
 val empty_subs = []
+(* Pretty-printing *)
+fun pp_substitutions s =
+    "{ " ^ (String.concatWith ",\n, "
+                              (map (fn (s, t) =>
+                                       (pp_var s) ^
+                                       " -> " ^
+                                       (pp_term t))
+                                   (rev s))) ^ "\n}"
 
 (* Note how we do the look-up recursively, this is needed for
    unification, for example in the following case
@@ -41,7 +72,7 @@ val empty_subs = []
                 unify A with D
    If we wouldn't do recursive look-up, we could end up unifying B
    with D, which would be wrong, as 1 and 2 should not unify. *)
-fun lookup (subs : substitutions) (v as Var id) =
+fun lookup subs (v as Var id) =
     (case List.find (fn (id', t) => id=id') subs of
          NONE => v
        | SOME (_, t) => lookup subs t)
@@ -68,14 +99,20 @@ fun occurs id =
   | Atom _ => false
   | Comp(_, ts) => List.exists (occurs id) ts
 
-fun extend (subs : substitutions) id term =
+fun extend subs id term =
     if !occurs_check andalso
        occurs id term then NONE
     else SOME ((id, term)::subs)
+end
 
 
-(* Section 2: Unification *)
-
+(* Part 3: Unification *)
+structure Unification :> UNIFICATION
+   where type term = Terms.term
+     and type substitutions = Substitutions.substitutions =
+struct
+open Terms
+open Substitutions
 (* This is similar to slide Basics/11, or bookwork question 2R.1,
    which is why it might be an extension on it. What is different is
    that we expand terms under the current substitution (this expansion
@@ -102,13 +139,22 @@ fun unify subs (t1, t2) =
                            (ListPair.zip (ts1, ts2))
               | (_, _) => NONE
     end
+end
 
 
-(* Part 3: Pure operators: unification (==), conjunction (&&),
+(* Part 4: Pure operators: unification (==), conjunction (&&),
    disjunction (||) and interleaving disjunction (II)
 
    For examples, see the file microkanren_examples.sml *)
-
+structure PureOperators :> PURE_OPERATORS
+  where type 'a seq = 'a Sequence.seq
+    and type term = Terms.term
+    and type substitutions = Substitutions.substitutions =
+struct
+open Terms
+open Sequence
+open Substitutions
+open Unification
 (* You might not have come across the infix syntax before, it enables
    us to write
       A && B            instead of              &&(A, B)
@@ -129,45 +175,14 @@ infixr 3 ==
 infixr 2 &&
 infixr 1 || II
 
-(* Use statements require the file named by the string to be in the
-   current directory. You can do this by:
-   - You can do this in Linux by navigating to that directory in the
-      terminal, then executing "poly" (or "sml", or your preferred
-     implementation).
-   - In Windows, you can right-click on the Poly shortcut, and modify
-     the "Start in" to be where the "sequence.sml" file is located.
-   - Alternatively, within your Standard ML implementation, you can use
-     "OS.FileSys.chDir : string -> unit" to change directory, and
-     "OS.FileSys.getDir : unit -> string" to find where you are in the
-     first place. For more details, see
-        http://sml-family.org/Basis/os-file-sys.html#OS_FILE_SYS:SIG:SPEC
-
-   Note, that the semicolon seems necessary, to force SML to load the
-   sequence.sml file first, then continue compiling the rest of this
-   file.
-
-   We will need a lazy-list library, which has the following:
-
-    datatype 'a seq = consq of 'a * (unit -> 'a seq) | nilq
-    val seq : 'a list -> 'a seq
-
-    (* Note how the second argument to appq is a function, this is
-    just convention here, but I use this convention as in some cases,
-    it allows the second argument to be lazy *)
-    val appq : 'a seq * (unit -> 'a seq) -> 'a seq
-
-    (* mappq stands for map and append sequence, it can be implemented by
-          fun mappq f seq = foldrq appq nilq (mapq f seq) *)
-    val mappq : ('a -> 'b seq) -> 'a seq -> 'b seq
-
-    (* interleaveq([a0, a1, ...], [b0, b1, ...]) = [a0, b0, a1, b1, ...] *)
-    val interleaveq : 'a seq * (unit -> 'a seq) -> 'a seq
- *)
-val () = use "sequence.sml";
 (* The state represents one possible answer to a query (at the top
    level). It consists of a set of substitutions, and an integer,
    which is the first free Internal variable. *)
 type state = substitutions * int
+(* Pretty-printing *)
+fun pp_state (subs, free_var) =
+    "Used "^(Int.toString free_var)^" variables\n"^
+    (pp_substitutions subs)
 
 (* A goal represents a query, e.g. in Prolog
           true
@@ -244,9 +259,10 @@ fun (goal1 II goal2) state =
                val II : goal * goal -> goal *)
 fun (goal1 && goal2) state =
     mappq goal2 (goal1 state)
+end
 
 
-(* Part 4: Impure operators: "If" and "once", these two allow us to
+(* Part 5: Impure operators: "If" and "once", these two allow us to
    implement Prolog's cut. To rewrite a rule which uses cut, use the
    "If" as the joiner of the two clauses (instead of ||) , and use
    "once" for anything before the cut (!) inside the clause. E.g.
@@ -263,7 +279,11 @@ fun (goal1 && goal2) state =
                    , bar 2
                    , bar 3) subst
  *)
-
+structure ImpureOperators :> IMPURE_OPERATORS
+   where type goal = PureOperators.goal =
+struct
+open Sequence
+type goal = PureOperators.goal
 fun If (condition, true_case, false_case) state =
     case condition state of nilq => false_case state
                           | seq  => mappq true_case seq
@@ -271,3 +291,4 @@ fun If (condition, true_case, false_case) state =
 fun once goal state =
     case goal state of nilq => nilq
                      | consq(x,xf) => seq [x]
+end
