@@ -170,7 +170,11 @@ open Unification
    pattern to have conjunctions (&&) in disjunctions (||, II),
    especially if we are thinking in Prolog terms, where a rule is a
    disjunction of clauses, and a clause is a conjunction of
-   unifications and calls to other rules. *)
+   unifications and calls to other rules.
+
+   Because Standard ML signatures don't allow exporting fixity (that
+   an operator is infix), you will have to put these wherever you
+   "open PureOperators" or use "PureOperators.==" *)
 infixr 3 ==
 infixr 2 &&
 infixr 1 || II

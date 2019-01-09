@@ -6,18 +6,21 @@ though I find the
 a bit clearer
 
 Files:
+- [microkanren.sig](microkanren.sig):
+  The signatures of all the structures in
+  [microkanren.sml](microkanren.sml).
 - [microkanren.sml](microkanren.sml):
   The microKanren implementation, around 100 lines
-  of Standard ML, and 150 lines of comments.
+  of Standard ML, and 150 lines of comments. Probably helpful to read
+  [microkanren.sig](microkanren.sig) alongside this.
+- [sequence.sig](sequence.sig):
+  The signature which [sequence.sml](sequence.sml) implements.
 - [sequence.sml](sequence.sml):
    A simple lazy-list/stream/sequence library for
    Standard ML, necessary for [microkanren.sml](microkanren.sml).
-- [microkanren_prettyprint.sml](microkanren_prettyprint.sml):
-   Basic pretty-printers for terms, necessary for
-   [microkanren_examples.sml](microkanren_examples.sml).
 - [microkanren_examples.sm](microkanren_examples.sml):
    A couple of examples, with their corresponding
-   Prolog implementation.
+   Prolog implementation in the comments.
 
 Running:
 To run in PolyML, run
@@ -43,12 +46,12 @@ y
 X==x && Y==X
 x
 
-peano(N)
+peano N
 z
 s(z)
 s(s(z))
 
-wait(N) || peano N
+waitN || peano N
 please_wait
 please_wait
 please_wait
