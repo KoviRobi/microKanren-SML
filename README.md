@@ -51,7 +51,7 @@ z
 s(z)
 s(s(z))
 
-waitN || peano N
+wait N || peano N
 please_wait
 please_wait
 please_wait
