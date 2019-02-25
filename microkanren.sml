@@ -89,15 +89,20 @@ fun extend (subs : substitutions) id term =
 fun unify subs (t1, t2) =
     let val t1' = lookup subs t1
         val t2' = lookup subs t2
-    in if t1=t2 then SOME subs
+    in if t1'=t2' then SOME subs (* Anything identical unifies *)
        else case (t1', t2') of
+                (* Free variables unify (we have done lookup
+                previously, extend may do occurs-check) *)
                 (Var id, t2') => extend subs id t2'
               | (t1', Var id) => extend subs id t1'
+                (* Compound terms unify if their top symbols match,
+                 if their arities match, and they match recursively
+                 (done by the fold) *)
               | (Comp (n1, ts1), Comp (n2, ts2)) =>
                 if n1<>n2 orelse length ts1 <> length ts2
                 then NONE
                 else foldl (fn (_, NONE) => NONE
-                           | (ts, SOME s) => unify s ts)
+                             | (ts, SOME s) => unify s ts)
                            (SOME subs)
                            (ListPair.zip (ts1, ts2))
               | (_, _) => NONE
